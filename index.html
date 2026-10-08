@@ -92,6 +92,38 @@
   .detail .say { margin-bottom: 8px; }
   .detail .ex { color: var(--muted); font-style: italic; font-size: 0.9rem; margin: 0 0 8px; }
 
+  /* Timer */
+  .timer {
+    margin: 14px 0 0 -42px;
+    padding: 14px 0 0;
+    border-top: 1px dashed var(--line);
+    text-align: center;
+  }
+  .tlabel { color: var(--muted); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; margin: 0 0 4px !important; }
+  .tface { display: flex; align-items: center; justify-content: center; gap: 14px; }
+  .clock {
+    font-size: 2.6rem; font-weight: 700; min-width: 4.2ch;
+    font-variant-numeric: tabular-nums; letter-spacing: 0.02em;
+  }
+  .clock.finished { color: var(--done); }
+  .adj {
+    width: 48px; height: 48px; border-radius: 50%;
+    border: 2px solid var(--accent); background: transparent; color: var(--accent);
+    font: inherit; font-size: 1.5rem; font-weight: 700; line-height: 1;
+    display: inline-flex; align-items: center; justify-content: center; padding: 0;
+  }
+  .adj:active:not(:disabled) { background: var(--accent); color: #fff; }
+  .adj:disabled { opacity: 0.35; }
+  .tbtns { display: flex; gap: 10px; justify-content: center; margin-top: 12px; }
+  .tbtn {
+    min-height: 52px; min-width: 112px; border-radius: 14px; padding: 0 20px;
+    font: inherit; font-weight: 700; font-size: 1rem;
+    border: 2px solid var(--accent); background: transparent; color: var(--accent);
+  }
+  .tbtn.primary { background: var(--accent); color: #fff; }
+  .tbtn:active { transform: scale(0.98); }
+  .tnote { color: var(--muted); font-size: 0.82rem; margin: 10px 14px 0 !important; min-height: 1.2em; }
+
   .reset { display: block; margin: 8px auto 0; background: none; border: 2px solid var(--line); color: var(--muted); border-radius: 12px; padding: 12px 20px; font: inherit; font-size: 0.95rem; }
   .done-msg { text-align: center; color: var(--done); font-weight: 700; margin: 10px 0 0; min-height: 1.5em; }
 </style>
@@ -138,47 +170,52 @@
     { t: "Say:", q: "Thank you for making space for us today." }
   ];
 
+  // secs = default timer length in seconds (the high end of each range)
   var CARDS = [
-    { n: "Sitting Close", time: "2–3 min", touch: "Optional",
-      body: ["Sit side by side.", "You can have a little space between you, or let your shoulders, arms, or legs gently touch.", "Look forward, breathe, and simply notice being near each other."],
+    { n: "Sitting Close", time: "2–3 min", secs: 180, touch: "Optional",
+      body: ["Sit side by side.", "You can have a little space between you, or let your shoulders, arms or legs gently touch.", "Look forward, breathe, and simply notice being near each other."],
       say: "One thing I noticed was…" },
-    { n: "Eye Gazing", time: "2 min", touch: "No touch",
+    { n: "Eye Gazing", time: "2 min", secs: 120, touch: "No touch",
       body: ["Sit facing each other.", "Look softly at each other. You can blink, smile, look away for a moment, then return.", "Let it be gentle rather than intense."],
       say: "Looking at you, I noticed…" },
-    { n: "Back-to-Back Breathing", time: "3 min", touch: "Backs touching",
-      body: ["Sit back-to-back on the couch, floor, or chairs.", "Let your backs rest gently against each other.", "Breathe normally. You do not have to match each other’s breathing.", "Just feel the quiet support of another person there."],
+    { n: "Back-to-Back Breathing", time: "3 min", secs: 180, touch: "Backs touching",
+      body: ["Sit back-to-back on the couch, floor or chairs.", "Let your backs rest gently against each other.", "Breathe normally. You do not have to match each other’s breathing.", "Just feel the quiet support of another person there."],
       say: "Being close like that felt…" },
-    { n: "Holding Hands", time: "2–3 min", touch: "Hands",
-      body: ["Sit side by side or facing each other.", "Hold hands gently.", "Notice the warmth, the shape of each other’s hand, and the small contact between you."],
+    { n: "Holding Hands", time: "2–3 min", secs: 180, touch: "Hands",
+      body: ["Sit side by side or facing each other.", "Hold hands gently.", "Notice the warmth, the shape of each other’s hand and the small contact between you."],
       say: "Holding your hand felt…" },
-    { n: "Hand on Back", time: "3 min", touch: "Hand on back or shoulder",
+    { n: "Hand on Back", time: "3 min", secs: 180, touch: "Hand on back or shoulder",
       body: ["One person places a gentle hand on the other’s upper back or shoulder.", "Let the hand be still and warm.", "After a minute or two, you may switch if you both want to."],
       say: "That touch felt…" },
-    { n: "The Gentle Hug", time: "1–2 min", touch: "Hug",
+    { n: "The Gentle Hug", time: "1–2 min", secs: 120, touch: "Hug",
       body: ["Stand or sit and hold each other gently.", "Let the hug be quiet and simple.", "There is nothing to perform. Just breathe and let your bodies remember the feeling of being close."],
       say: "Thank you for that." },
-    { n: "Taking Turns Being Held", time: "4 min total", touch: "Holding",
+    { n: "Taking Turns Being Held", time: "4 min total", secs: 240, touch: "Holding",
       body: ["Set a timer for 2 minutes.", "First, one person holds the other.", "The person being held can simply rest there and receive.", "Then switch, if that feels right."],
       say: "Being held felt…" },
-    { n: "Appreciation", time: "3–5 min", touch: "Optional",
+    { n: "Appreciation", time: "3–5 min", secs: 300, touch: "Optional",
       body: ["Take turns completing this sentence. Share 2 or 3 each. Keep it simple and true.", "Let the appreciation land. The person receiving can simply say “Thank you.”"],
       say: "One thing I appreciate about you today is…" },
-    { n: "A Small Hope", time: "3 min", touch: "Optional",
+    { n: "A Small Hope", time: "3 min", secs: 180, touch: "Optional",
       body: ["Take turns completing this sentence.", "The other person simply says “I’d like that too” or “Thank you for sharing that with me.”"],
       say: "A small hope I have for us is…" },
-    { n: "Remembering Us", time: "3–5 min", touch: "Optional",
+    { n: "Remembering Us", time: "3–5 min", secs: 300, touch: "Optional",
       body: ["Take turns answering one of these: “A memory of us that still makes me smile is…” or “Something I used to love about us is…”", "Keep it soft. Choose memories that bring warmth rather than sadness or pressure.", "At the end, say “I’m glad we have that memory.”"],
       say: null }
   ];
 
+  var STEP = 30;        // seconds added or removed by the plus and minus buttons
+  var MIN_SECS = 30;
+  var MAX_SECS = 1800;
+
   var KEY = "dailyRhythmState";
-  var state = { date: today(), open: [], close: [], card: null };
+  var state = { date: today(), open: [], close: [], card: null, dur: {} };
 
   function today() { return new Date().toISOString().slice(0, 10); }
   function load() {
     try {
       var s = JSON.parse(localStorage.getItem(KEY) || "null");
-      if (s && s.date === today()) state = s;
+      if (s && s.date === today()) { state = s; if (!state.dur) state.dur = {}; }
     } catch (e) {}
   }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
@@ -187,6 +224,201 @@
 
   function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
 
+  /* ---------------------------------------------------------------
+     Timer
+  --------------------------------------------------------------- */
+  var T = { idx: null, running: false, remaining: 0, endAt: 0, tick: null, lock: null, ctx: null, finished: false };
+
+  function dur(i) {
+    var v = state.dur[i];
+    return (typeof v === "number") ? v : CARDS[i].secs;
+  }
+  function fmt(sec) {
+    var m = Math.floor(sec / 60), s = sec % 60;
+    return m + ":" + (s < 10 ? "0" : "") + s;
+  }
+  function $(id) { return document.getElementById(id); }
+
+  function refreshTimerUI() {
+    var clock = $("tClock");
+    if (!clock) return;
+    clock.textContent = T.finished ? "Done" : fmt(T.remaining);
+    clock.className = "clock" + (T.finished ? " finished" : "");
+    $("tStart").textContent = T.running ? "Stop" : (T.finished ? "Again" : (T.remaining < dur(T.idx) ? "Resume" : "Start"));
+    $("tStart").className = "tbtn" + (T.running ? "" : " primary");
+    $("tMinus").disabled = T.running;
+    $("tPlus").disabled = T.running;
+    var note = $("tNote");
+    if (T.running) {
+      note.textContent = ("wakeLock" in navigator)
+        ? "Your screen will stay awake while the timer runs."
+        : "This browser cannot keep the screen awake, so you may want to turn off auto-lock.";
+    } else {
+      note.textContent = "";
+    }
+  }
+
+  function onTick() {
+    var left = Math.max(0, Math.ceil((T.endAt - Date.now()) / 1000));
+    T.remaining = left;
+    if (left <= 0) { finishTimer(); return; }
+    var clock = $("tClock");
+    if (clock) clock.textContent = fmt(left);
+  }
+
+  function startTimer() {
+    if (T.idx === null) return;
+    unlockAudio();
+    if (T.finished || T.remaining <= 0) { T.finished = false; T.remaining = dur(T.idx); }
+    T.endAt = Date.now() + T.remaining * 1000;
+    T.running = true;
+    requestLock();
+    clearInterval(T.tick);
+    T.tick = setInterval(onTick, 250);
+    refreshTimerUI();
+  }
+
+  function stopTimer() {
+    if (T.running) T.remaining = Math.max(1, Math.ceil((T.endAt - Date.now()) / 1000));
+    T.running = false;
+    clearInterval(T.tick);
+    releaseLock();
+    refreshTimerUI();
+  }
+
+  function resetTimer() {
+    T.running = false;
+    T.finished = false;
+    clearInterval(T.tick);
+    releaseLock();
+    if (T.idx !== null) T.remaining = dur(T.idx);
+    refreshTimerUI();
+  }
+
+  function finishTimer() {
+    clearInterval(T.tick);
+    T.running = false;
+    T.finished = true;
+    T.remaining = 0;
+    releaseLock();
+    chime();
+    try { if (navigator.vibrate) navigator.vibrate([160, 90, 160]); } catch (e) {}
+    refreshTimerUI();
+  }
+
+  function haltTimer() {
+    clearInterval(T.tick);
+    T.running = false;
+    T.finished = false;
+    releaseLock();
+  }
+
+  function adjust(delta) {
+    if (T.running || T.idx === null) return;
+    var next = Math.min(MAX_SECS, Math.max(MIN_SECS, dur(T.idx) + delta));
+    state.dur[T.idx] = next;
+    T.finished = false;
+    T.remaining = next;
+    save();
+    refreshTimerUI();
+  }
+
+  /* Keep the screen awake while the timer runs */
+  function requestLock() {
+    if (!("wakeLock" in navigator)) return;
+    try {
+      navigator.wakeLock.request("screen").then(function (l) {
+        if (!T.running) { l.release().catch(function () {}); return; }
+        T.lock = l;
+        l.addEventListener("release", function () { if (T.lock === l) T.lock = null; });
+      }).catch(function () {});
+    } catch (e) {}
+  }
+  function releaseLock() {
+    var l = T.lock;
+    T.lock = null;
+    if (l) { try { l.release().catch(function () {}); } catch (e) {} }
+  }
+  // The browser drops the lock when the tab is hidden, so take it again on return
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "visible" && T.running) {
+      if (!T.lock) requestLock();
+      onTick();
+    }
+  });
+
+  /* Soft chime: a gentle rising bell phrase with a little echo */
+  function getCtx() {
+    if (!T.ctx) {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      try { T.ctx = new AC(); } catch (e) { return null; }
+    }
+    if (T.ctx.state === "suspended") { try { T.ctx.resume(); } catch (e) {} }
+    return T.ctx;
+  }
+  function unlockAudio() {
+    var ctx = getCtx();
+    if (!ctx) return;
+    try {
+      var b = ctx.createBuffer(1, 1, 22050);
+      var s = ctx.createBufferSource();
+      s.buffer = b; s.connect(ctx.destination); s.start(0);
+    } catch (e) {}
+  }
+  function chime() {
+    var ctx = getCtx();
+    if (!ctx) return;
+    var now = ctx.currentTime + 0.05;
+
+    var master = ctx.createGain();
+    master.gain.value = 0.55;
+    master.connect(ctx.destination);
+
+    // Echo for a spacious, calm feel
+    var delay = ctx.createDelay(1.0);
+    delay.delayTime.value = 0.32;
+    var fb = ctx.createGain(); fb.gain.value = 0.38;
+    var lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 2400;
+    var wet = ctx.createGain(); wet.gain.value = 0.4;
+    delay.connect(lp); lp.connect(fb); fb.connect(delay);
+    lp.connect(wet); wet.connect(master);
+
+    // C5, E5, G5, then a held C6 with a soft G5 beneath it
+    var phrase = [
+      { f: 523.25, at: 0.0,  len: 2.6 },
+      { f: 659.25, at: 0.5,  len: 2.6 },
+      { f: 783.99, at: 1.0,  len: 2.8 },
+      { f: 1046.5, at: 1.6,  len: 3.8 },
+      { f: 783.99, at: 1.6,  len: 3.4, soft: true }
+    ];
+    // Partials give each note a bell-like warmth
+    var partials = [ { m: 1, a: 1.0 }, { m: 2.0, a: 0.28 }, { m: 2.76, a: 0.1 } ];
+
+    phrase.forEach(function (n) {
+      var start = now + n.at;
+      var peak = n.soft ? 0.07 : 0.2;
+      partials.forEach(function (p) {
+        var osc = ctx.createOscillator();
+        var g = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.value = n.f * p.m;
+        var amp = peak * p.a;
+        g.gain.setValueAtTime(0.0001, start);
+        g.gain.linearRampToValueAtTime(amp, start + 0.03);
+        g.gain.exponentialRampToValueAtTime(0.0001, start + n.len / (1 + (p.m - 1) * 0.5));
+        osc.connect(g);
+        g.connect(master);
+        g.connect(delay);
+        osc.start(start);
+        osc.stop(start + n.len + 0.1);
+      });
+    });
+  }
+
+  /* ---------------------------------------------------------------
+     Rendering
+  --------------------------------------------------------------- */
   function renderList(id, items, key) {
     var el = document.getElementById(id);
     el.innerHTML = "";
@@ -209,15 +441,38 @@
   }
 
   function renderCards(flashIdx) {
+    // If the selected card changed, drop any running timer and load the new default
+    if (T.idx !== state.card) {
+      haltTimer();
+      T.idx = state.card;
+      T.remaining = state.card !== null ? dur(state.card) : 0;
+    }
+
     var el = document.getElementById("cards");
     el.innerHTML = "";
     CARDS.forEach(function (c, i) {
+      var isOn = state.card === i;
       var div = document.createElement("div");
-      div.className = "card" + (state.card === i ? " on" : "") + (flashIdx === i ? " flash" : "");
+      div.className = "card" + (isOn ? " on" : "") + (flashIdx === i ? " flash" : "");
       div.id = "card" + i;
       var d = '<button type="button" class="head"><span class="box">' + CHECK + '</span><span><span class="title">' + esc(c.n) + '</span><span class="meta">' + esc(c.time) + " · Touch: " + esc(c.touch) + '</span></span></button><div class="detail">';
       c.body.forEach(function (p) { d += "<p>" + esc(p) + "</p>"; });
       if (c.say) d += '<p class="small">At the end, each person says:</p><span class="say">“' + esc(c.say) + '”</span>';
+      if (isOn) {
+        d += '<div class="timer">' +
+               '<p class="small tlabel">Timer</p>' +
+               '<div class="tface">' +
+                 '<button type="button" class="adj" id="tMinus" aria-label="Subtract 30 seconds">−</button>' +
+                 '<span class="clock" id="tClock" role="timer">0:00</span>' +
+                 '<button type="button" class="adj" id="tPlus" aria-label="Add 30 seconds">+</button>' +
+               '</div>' +
+               '<div class="tbtns">' +
+                 '<button type="button" class="tbtn primary" id="tStart">Start</button>' +
+                 '<button type="button" class="tbtn" id="tReset">Reset</button>' +
+               '</div>' +
+               '<p class="small tnote" id="tNote"></p>' +
+             '</div>';
+      }
       d += "</div>";
       div.innerHTML = d;
       div.querySelector(".head").addEventListener("click", function () {
@@ -226,6 +481,14 @@
       });
       el.appendChild(div);
     });
+
+    if (state.card !== null) {
+      $("tMinus").addEventListener("click", function () { adjust(-STEP); });
+      $("tPlus").addEventListener("click", function () { adjust(STEP); });
+      $("tStart").addEventListener("click", function () { T.running ? stopTimer() : startTimer(); });
+      $("tReset").addEventListener("click", resetTimer);
+      refreshTimerUI();
+    }
   }
 
   function updateDone() {
@@ -244,7 +507,9 @@
   });
 
   document.getElementById("resetBtn").addEventListener("click", function () {
-    state = { date: today(), open: [], close: [], card: null };
+    haltTimer();
+    T.idx = null;
+    state = { date: today(), open: [], close: [], card: null, dur: {} };
     save(); renderAll(); window.scrollTo({ top: 0, behavior: "smooth" });
   });
 
